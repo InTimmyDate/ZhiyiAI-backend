@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const fetch = require("node-fetch");
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -9,21 +10,37 @@ app.use(cors());
 app.use(express.json());
 
 // Simulated pattern generation endpoint
-app.post("/generate-pattern", (req, res) => {
+app.post("/generate-pattern", async (req, res) => {
   const { prompt, complexity, resolution } = req.body;
 
-  // Simulating pattern generation (replace this with your actual logic)
-  console.log(`Received request: prompt=${prompt}, complexity=${complexity}, resolution=${resolution}`);
-  
-  // Fake image URL (replace with real generated image URL)
-  const fakeImageUrl = "https://via.placeholder.com/512";
+  try {
+    // Call Python API
+    const pythonResponse = await fetch("https://select-seahorse-quickly.ngrok-free.app", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt,
+        num_inference_steps,
+        guidance_scale: 7.5, // Fixed guidance scale
+      }),
+    });
 
-  // Send response back to the frontend
-  res.json({
-    success: true,
-    message: "Pattern generated successfully!",
-    imageUrl: fakeImageUrl,
-  });
+    const data = await pythonResponse.json();
+
+    if (!data.success) {
+      throw new Error("Error generating pattern");
+    }
+
+    // Return the generated image to the frontend
+    res.json({
+      success: true,
+      message: "Pattern generated successfully!",
+      image: `data:image/png;base64,${data.image}`, // Return Base64 image
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Error generating pattern" });
+  }
 });
 
 // Start server

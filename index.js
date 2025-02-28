@@ -14,7 +14,7 @@ app.post("/generate-pattern", async (req, res) => {
 
   try {
     // Call Python API
-    const pythonResponse = await fetch("https://select-seahorse-quickly.ngrok-free.app/generate", {
+    const pythonResponse = await fetch("https://select-seahorse-quickly.ngrok-free.app/generate/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

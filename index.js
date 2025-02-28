@@ -19,8 +19,8 @@ app.post("/generate-pattern", async (req, res) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
-        num_color: 8,
-        size: 1200, // Fixed guidance scale
+        num_color,
+        size
       }),
     });
 

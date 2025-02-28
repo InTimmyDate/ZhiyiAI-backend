@@ -20,7 +20,7 @@ app.post("/generate-pattern", async (req, res) => {
       body: JSON.stringify({
         prompt,
         num_color: 8,
-        guidance_scale: 1200, // Fixed guidance scale
+        size: 1200, // Fixed guidance scale
       }),
     });
 

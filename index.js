@@ -20,7 +20,7 @@ app.post("/generate-pattern", async (req, res) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
-        num_inference_steps,
+        num_inference_steps: 30,
         guidance_scale: 7.5, // Fixed guidance scale
       }),
     });

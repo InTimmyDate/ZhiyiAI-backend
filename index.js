@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Simulated pattern generation endpoint
 app.post("/generate-pattern", async (req, res) => {
-  const { prompt, complexity, resolution } = req.body;
+  const { prompt, num_color, size } = req.body;
 
   try {
     // Call Python API

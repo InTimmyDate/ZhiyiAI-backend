@@ -8,9 +8,8 @@ const PORT = process.env.PORT || 5500;
 app.use(cors());
 app.use(express.json());
 
-// Simulated pattern generation endpoint
 app.post("/generate-pattern", async (req, res) => {
-  const { prompt, num_color, size } = req.body;
+  const { genType, prompt, width, height } = req.body;
 
   try {
     // Call Python API
@@ -18,9 +17,42 @@ app.post("/generate-pattern", async (req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        genType,
         prompt,
+        width,
+        height,
+      }),
+    });
+
+    const data = await pythonResponse.json();
+
+    if (!data.success) {
+      throw new Error("Error generating pattern");
+    }
+
+    // Return the generated image to the frontend
+    res.json({
+      success: true,
+      message: "Pattern generated successfully!",
+      image: `data:image/png;base64,${data.image}`, // Return Base64 image
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Error generating pattern" });
+  }
+});
+
+app.post("/reduce-color", async (req, res) => {
+  const { num_color, uploadedImage } = req.body;
+
+  try {
+    // Call Python API
+    const pythonResponse = await fetch("https://select-seahorse-quickly.ngrok-free.app/reduce/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         num_color,
-        size
+        uploadedImage,
       }),
     });
 

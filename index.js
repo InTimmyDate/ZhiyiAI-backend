@@ -6,7 +6,6 @@ const PORT = process.env.PORT || 5500;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
 var bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));

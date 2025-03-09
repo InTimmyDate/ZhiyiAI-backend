@@ -11,9 +11,6 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
 
-const server = http.createServer(app);
-server.setTimeout(300000); // 300000 ms = 5 minutes
-
 app.post("/generate-pattern", async (req, res) => {
   const { genType, prompt, width, height } = req.body;
 

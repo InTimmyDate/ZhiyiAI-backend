@@ -19,37 +19,38 @@ server.setTimeout(600000); // Set timeout to 10 minutes (600000ms)
 app.post("/analyze-requirements", async (req, res) => {
   const { image } = req.body;
 
-  // 检查请求体中是否包含图片
   if (!image) {
     return res.status(400).json({ success: false, message: "Image is required for analysis" });
   }
 
   try {
-    // 调用 DeepSeek API
-    const deepseekResponse = await fetch("https://api.deepseek.com/analyze", {
+    // Call DeepSeek API for image analysis
+    const response = await fetch("https://api.deepseek.com/v1/image-analysis", {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": `sk-68f819c08b5d4b8cb62725067e9a7543` // 替换为你的 DeepSeek API 密钥
+        "Authorization": `Bearer sk-68f819c08b5d4b8cb62725067e9a7543`,
       },
-      body: JSON.stringify({ image }), // 将 Base64 图像传递给 DeepSeek
+      body: JSON.stringify({
+        image: image, // Assuming image is a base64 string or URL
+        prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style.",
+      }),
     });
 
-    // 检查 DeepSeek API 的响应
-    const data = await deepseekResponse.json();
-
-    if (!deepseekResponse.ok || !data.success) {
-      throw new Error(data.message || "Failed to analyze image with DeepSeek API");
+    if (!response.ok) {
+      throw new Error(`DeepSeek API responded with status: ${response.status}`);
     }
 
-    // 从 DeepSeek API 的响应中提取分析结果
+    const data = await response.json();
+    
+    // Extract pattern, color, and style from DeepSeek response
+    // Adjust based on actual DeepSeek API response structure
     const analysisResult = {
-      pattern: data.analysis?.pattern || "unknown", // DeepSeek 返回的 pattern
-      color: data.analysis?.color || "unknown",     // DeepSeek 返回的 color
-      style: data.analysis?.style || "unknown",     // DeepSeek 返回的 style
+      pattern: data.result?.pattern || "unknown",
+      color: data.result?.color || "unknown",
+      style: data.result?.style || "unknown",
     };
 
-    // 返回分析结果
     res.json({
       success: true,
       requirements: analysisResult,

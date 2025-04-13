@@ -16,21 +16,42 @@ const server = http.createServer(app);
 server.setTimeout(600000); // Set timeout to 10 minutes (600000ms)
 
 // Route: Analyze Requirements
+const fetch = require("node-fetch"); // 用于调用 DeepSeek API
+
 app.post("/analyze-requirements", async (req, res) => {
   const { image } = req.body;
 
+  // 检查请求体中是否包含图片
   if (!image) {
     return res.status(400).json({ success: false, message: "Image is required for analysis" });
   }
 
   try {
-    // Simulated analysis result (replace with actual logic or API call)
+    // 调用 DeepSeek API
+    const deepseekResponse = await fetch("https://api.deepseek.com/analyze", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `sk-68f819c08b5d4b8cb62725067e9a7543` // 替换为你的 DeepSeek API 密钥
+      },
+      body: JSON.stringify({ image }), // 将 Base64 图像传递给 DeepSeek
+    });
+
+    // 检查 DeepSeek API 的响应
+    const data = await deepseekResponse.json();
+
+    if (!deepseekResponse.ok || !data.success) {
+      throw new Error(data.message || "Failed to analyze image with DeepSeek API");
+    }
+
+    // 从 DeepSeek API 的响应中提取分析结果
     const analysisResult = {
-      pattern: "floral",
-      color: "red",
-      style: "modern",
+      pattern: data.analysis?.pattern || "unknown", // DeepSeek 返回的 pattern
+      color: data.analysis?.color || "unknown",     // DeepSeek 返回的 color
+      style: data.analysis?.style || "unknown",     // DeepSeek 返回的 style
     };
 
+    // 返回分析结果
     res.json({
       success: true,
       requirements: analysisResult,

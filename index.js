@@ -33,31 +33,37 @@ app.post("/analyze-requirements", async (req, res) => {
       image = base64Match[1]; // Extract the base64 part
     }
 
-    // Call DeepSeek API for image analysis
-    const response = await fetch("https://api.deepseek.com/v1/image-analysis", {
+    // Call Tongyi Qianwen (Qwen) API for image analysis
+    const response = await fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/vision-generation/generation", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        "Authorization": `Bearer sk-3e46e4fae25e423d9037cac8379327a5`,
       },
       body: JSON.stringify({
-        image, // Send base64 string
-        prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style.",
+        model: "qwen-vl-plus",
+        input: {
+          image: image, // Base64-encoded image
+          prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style."
+        },
+        parameters: {
+          output_format: "json"
+        }
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`DeepSeek API responded with status: ${response.status}`);
+      throw new Error(`Qwen API responded with status: ${response.status}`);
     }
 
     const data = await response.json();
-    
-    // Extract pattern, color, and style from DeepSeek response
-    // Adjust based on actual DeepSeek API response structure
+
+    // Extract pattern, color, and style from Qwen response
+    // Adjust based on actual Qwen API response structure
     const analysisResult = {
-      pattern: data.result?.pattern || "unknown",
-      color: data.result?.color || "unknown",
-      style: data.result?.style || "unknown",
+      pattern: data.output?.pattern || "unknown",
+      color: data.output?.color || "unknown",
+      style: data.output?.style || "unknown",
     };
 
     res.json({

@@ -17,22 +17,31 @@ server.setTimeout(600000); // Set timeout to 10 minutes (600000ms)
 
 // Route: Analyze Requirements
 app.post("/analyze-requirements", async (req, res) => {
-  const { image } = req.body;
+  let { image } = req.body;
 
   if (!image) {
     return res.status(400).json({ success: false, message: "Image is required for analysis" });
   }
 
   try {
+    // Handle data URL format by extracting base64 string
+    if (image.startsWith('data:image')) {
+      const base64Match = image.match(/^data:image\/[a-z]+;base64,(.+)$/);
+      if (!base64Match) {
+        return res.status(400).json({ success: false, message: "Invalid base64 image format" });
+      }
+      image = base64Match[1]; // Extract the base64 part
+    }
+
     // Call DeepSeek API for image analysis
     const response = await fetch("https://api.deepseek.com/v1/image-analysis", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer sk-68f819c08b5d4b8cb62725067e9a7543`,
+        "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`,
       },
       body: JSON.stringify({
-        image: image, // Assuming image is a base64 string or URL
+        image, // Send base64 string
         prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style.",
       }),
     });

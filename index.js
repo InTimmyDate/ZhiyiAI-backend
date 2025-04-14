@@ -3,6 +3,7 @@ const cors = require("cors");
 const http = require("http");
 const fetch = require("node-fetch"); // Import fetch for server-side API calls
 const bodyParser = require("body-parser");
+const FormData = require('form-data');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -42,12 +43,30 @@ app.post("/analyze-requirements", async (req, res) => {
       image = base64Match[1]; // Extract the base64 part
     }
 
+    // Upload to ImgBB for a temporary URL
+    const formData = new FormData();
+    formData.append('image', image);
+    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=341351e946486ead55be9faf36356aa2`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!imgbbResponse.ok) {
+      throw new Error(`ImgBB upload failed with status: ${imgbbResponse.status}`);
+    }
+
+    const imgbbData = await imgbbResponse.json();
+    if (!imgbbData.success) {
+      throw new Error('ImgBB upload failed: ' + imgbbData.error?.message);
+    }
+    const imageUrl = imgbbData.data.url;
+
     const response = await openai.chat.completions.create({
         model: "qwen-vl-max", // 此处以qwen-vl-max为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
         messages: [{role: "user",content: [
-            { type: "text", text: "这是什么？" },
+            { type: "text", text: "你是一位经验丰富的纺织业设计师，擅长根据客户给出的需求文档或参考图分析出客户想要的花型种类/风格/和颜色。现在你收到了一份参考文件，请尝试对其进行分析，给出花型/风格/颜色三个方面的建议，字数控制在300字左右，可能的话在颜色方面给出几个pantone格式的颜色推荐4-8个左右。" },
             { type: "image_url",
-              "image_url": {"url": "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"}}
+              "image_url": {"url": imageUrl}}
         ]}]
     });
     console.log(JSON.stringify(response));

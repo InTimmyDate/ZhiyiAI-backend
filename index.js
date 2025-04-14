@@ -52,11 +52,17 @@ app.post("/analyze-requirements", async (req, res) => {
     });
     console.log(JSON.stringify(response));
 
-    const data = await response.json();
+    let analysisResult;
+    try {
+      analysisResult = JSON.parse(response.choices?.[0]?.message?.content || '{}');
+    } catch (parseError) {
+      console.error("Failed to parse content as JSON:", parseError);
+      analysisResult = {};
+    }
 
     res.json({
       success: true,
-      requirements: data,
+      requirements: analysisResult,
     });
   } catch (error) {
     console.error("Error analyzing requirements:", error);

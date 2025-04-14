@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = process.env.PORT || 5500;
-import OpenAI from "openai";
+const OpenAI = require("openai");
 
 // Middleware
 app.use(cors());

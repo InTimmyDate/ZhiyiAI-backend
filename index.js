@@ -46,7 +46,8 @@ app.post("/analyze-requirements", async (req, res) => {
         model: "qwen-vl-max", // 此处以qwen-vl-max为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
         messages: [{role: "user",content: [
             { type: "text", text: "这是什么？" },
-            { type: "image",image: image}
+            { type: "image_url",
+              "image_url": {"url": "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"}}
         ]}]
     });
     console.log(JSON.stringify(response));

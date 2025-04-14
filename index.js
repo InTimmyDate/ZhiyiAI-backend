@@ -53,7 +53,7 @@ app.post("/analyze-requirements", async (req, res) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Qwen API responded with status: ${response.Error}`);
+      throw new Error(`Qwen API responded with status: ${response.json}`);
     }
 
     const data = await response.json();

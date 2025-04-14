@@ -38,7 +38,7 @@ app.post("/analyze-requirements", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.DASHSCOPE_API_KEY}`,
+        "Authorization": `Bearer sk-3e46e4fae25e423d9037cac8379327a5`,
       },
       body: JSON.stringify({
         model: "qwen-vl-plus",

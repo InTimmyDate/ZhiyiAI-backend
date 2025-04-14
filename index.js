@@ -16,8 +16,6 @@ const server = http.createServer(app);
 server.setTimeout(600000); // Set timeout to 10 minutes (600000ms)
 
 // Route: Analyze Requirements
-const fetch = require('node-fetch');
-
 app.post("/analyze-requirements", async (req, res) => {
   let { image } = req.body;
 

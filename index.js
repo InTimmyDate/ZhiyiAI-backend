@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = process.env.PORT || 5500;
+import OpenAI from "openai";
 
 // Middleware
 app.use(cors());
@@ -14,6 +15,14 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 5
 
 const server = http.createServer(app);
 server.setTimeout(600000); // Set timeout to 10 minutes (600000ms)
+
+const openai = new OpenAI(
+  {
+      // 若没有配置环境变量，请用百炼API Key将下行替换为：apiKey: "sk-xxx",
+      apiKey: "sk-3e46e4fae25e423d9037cac8379327a5",
+      baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  }
+);
 
 // Route: Analyze Requirements
 app.post("/analyze-requirements", async (req, res) => {
@@ -33,42 +42,20 @@ app.post("/analyze-requirements", async (req, res) => {
       image = base64Match[1]; // Extract the base64 part
     }
 
-    // Call Tongyi Qianwen (Qwen) API for image analysis
-    const response = await fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/vision-generation/generation", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer sk-3e46e4fae25e423d9037cac8379327a5`,
-      },
-      body: JSON.stringify({
-        model: "qwen-vl-plus",
-        input: {
-          image: image, // Base64-encoded image
-          prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style."
-        },
-        parameters: {
-          output_format: "json"
-        }
-      }),
+    const response = await openai.chat.completions.create({
+        model: "qwen-vl-max", // 此处以qwen-vl-max为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+        messages: [{role: "user",content: [
+            { type: "text", text: "这是什么？" },
+            { type: "image",image: image}
+        ]}]
     });
-
-    if (!response.ok) {
-      throw new Error(`Qwen API responded with status: ${response.json}`);
-    }
+    console.log(JSON.stringify(response));
 
     const data = await response.json();
 
-    // Extract pattern, color, and style from Qwen response
-    // Adjust based on actual Qwen API response structure
-    const analysisResult = {
-      pattern: data.output?.pattern || "unknown",
-      color: data.output?.color || "unknown",
-      style: data.output?.style || "unknown",
-    };
-
     res.json({
       success: true,
-      requirements: analysisResult,
+      requirements: data,
     });
   } catch (error) {
     console.error("Error analyzing requirements:", error);

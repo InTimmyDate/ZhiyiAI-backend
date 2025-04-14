@@ -46,7 +46,9 @@ app.post("/analyze-requirements", async (req, res) => {
     // Upload to ImgBB for a temporary URL
     const formData = new FormData();
     formData.append('image', image);
-    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=341351e946486ead55be9faf36356aa2`, {
+    formData.append('key', "341351e946486ead55be9faf36356aa2");
+    formData.append('expiration', 120);
+    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?`, {
       method: 'POST',
       body: formData
     });
@@ -60,6 +62,7 @@ app.post("/analyze-requirements", async (req, res) => {
       throw new Error('ImgBB upload failed: ' + imgbbData.error?.message);
     }
     const imageUrl = imgbbData.data.url;
+    console.log("Image uploaded with URL: ", imageUrl)
 
     const response = await openai.chat.completions.create({
         model: "qwen-vl-max", // 此处以qwen-vl-max为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models

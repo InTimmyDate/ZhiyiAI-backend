@@ -16,65 +16,67 @@ const server = http.createServer(app);
 server.setTimeout(600000); // Set timeout to 10 minutes (600000ms)
 
 // Route: Analyze Requirements
-app.post("/analyze-requirements", async (req, res) => {
-  let { image } = req.body;
+export default app => {
+  app.post("/analyze-requirements", async (req, res) => {
+    let { image } = req.body;
 
-  if (!image) {
-    return res.status(400).json({ success: false, message: "Image is required for analysis" });
-  }
-
-  try {
-    // Handle data URL format by extracting base64 string
-    if (image.startsWith('data:image')) {
-      const base64Match = image.match(/^data:image\/[a-z]+;base64,(.+)$/);
-      if (!base64Match) {
-        return res.status(400).json({ success: false, message: "Invalid base64 image format" });
-      }
-      image = base64Match[1]; // Extract the base64 part
+    if (!image) {
+      return res.status(400).json({ success: false, message: "Image is required for analysis" });
     }
 
-    // Call Tongyi Qianwen (Qwen) API for image analysis
-    const response = await fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/vision-generation/generation", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer sk-3e46e4fae25e423d9037cac8379327a5`,
-      },
-      body: JSON.stringify({
-        model: "qwen-vl-plus",
-        input: {
-          image: image, // Base64-encoded image
-          prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style."
-        },
-        parameters: {
-          output_format: "json"
+    try {
+      // Handle data URL format by extracting base64 string
+      if (image.startsWith('data:image')) {
+        const base64Match = image.match(/^data:image\/[a-z]+;base64,(.+)$/);
+        if (!base64Match) {
+          return res.status(400).json({ success: false, message: "Invalid base64 image format" });
         }
-      }),
-    });
+        image = base64Match[1]; // Extract the base64 part
+      }
 
-    if (!response.ok) {
-      throw new Error(`Qwen API responded with status: ${response.status}`);
+      // Call Tongyi Qianwen (Qwen) API for image analysis
+      const response = await fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/vision-generation/generation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer sk-3e46e4fae25e423d9037cac8379327a5`,
+        },
+        body: JSON.stringify({
+          model: "qwen-vl-plus",
+          input: {
+            image: image, // Base64-encoded image
+            prompt: "Analyze the image and identify the pattern, color, and style. Return the result in JSON format with keys: pattern, color, style."
+          },
+          parameters: {
+            output_format: "json"
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Qwen API responded with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Extract pattern, color, and style from Qwen response
+      // Adjust based on actual Qwen API response structure
+      const analysisResult = {
+        pattern: data.output?.pattern || "unknown",
+        color: data.output?.color || "unknown",
+        style: data.output?.style || "unknown",
+      };
+
+      res.json({
+        success: true,
+        requirements: analysisResult,
+      });
+    } catch (error) {
+      console.error("Error analyzing requirements:", error);
+      res.status(500).json({ success: false, message: "Failed to analyze requirements" });
     }
-
-    const data = await response.json();
-
-    // Extract pattern, color, and style from Qwen response
-    // Adjust based on actual Qwen API response structure
-    const analysisResult = {
-      pattern: data.output?.pattern || "unknown",
-      color: data.output?.color || "unknown",
-      style: data.output?.style || "unknown",
-    };
-
-    res.json({
-      success: true,
-      requirements: analysisResult,
-    });
-  } catch (error) {
-    console.error("Error analyzing requirements:", error);
-    res.status(500).json({ success: false, message: "Failed to analyze requirements" });
-  }
-});
+  });
+};
 
 // Route: Generate Pattern
 app.post("/generate-pattern", async (req, res) => {
